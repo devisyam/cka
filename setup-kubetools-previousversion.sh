@@ -5,12 +5,6 @@
 # this script supports Ubuntu 20.04 LTS and later only
 # run this script with sudo
 
-#if ! [ $USER = root ]
-#then
-#	echo run this script with sudo
-#	exit 3
-#fi
-
 if ! [ -f /tmp/container.txt ]
 then
 	echo run ./setup-container.sh before running this script
@@ -25,6 +19,11 @@ OSVERSION=$(hostnamectl | awk '/Operating/ { print $4 }')
 KUBEVERSION=$(curl -s https://api.github.com/repos/kubernetes/kubernetes/releases/latest | jq -r '.tag_name')
 KUBEVERSION=${KUBEVERSION%.*}
 
+# setting previous version
+VERSION=${KUBEVERSION#*.}
+PREVIOUSVERSION=$(( VERSION - 1 ))
+PREVIOUSVERSION=v1.${PREVIOUSVERSION}
+
 
 if [ $MYOS = "Ubuntu" ]
 then
@@ -34,8 +33,8 @@ then
 EOF
 	
 	sudo apt-get update && sudo apt-get install -y apt-transport-https curl
-	curl -fsSL https://pkgs.k8s.io/core:/stable:/${KUBEVERSION}/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-	echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/${KUBEVERSION}/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+	curl -fsSL https://pkgs.k8s.io/core:/stable:/${PREVIOUSVERSION}/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+	echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/${PREVIOUSVERSION}/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 sleep 2
 
 	sudo apt-get update
